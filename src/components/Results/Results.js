@@ -1,10 +1,11 @@
 import { Button, Card, CardMedia, Chip, Grid, Typography } from '@material-ui/core';
 import { ReplyRounded } from '@material-ui/icons';
+import { Pagination } from '@material-ui/lab';
 import React from 'react';
 import { useStyles } from './Results.styles';
 
 const Results = (props) => {
-  const { featureList, listCourses, pageIndex, setPageIndex } = props;
+  const { featureList, listCourses, pageIndex, changePage } = props;
   const { root, media, gridCard, iconSend } = useStyles();
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -62,14 +63,31 @@ const Results = (props) => {
       );
     });
     return elements;
-  }
+  };
+  const checkLoading = () => (featureList.loading || listCourses.loading);
+  const handleChangePage = (e, value) => {
+    changePage(value);
+  };
+  const validatePagination = () => {
+    if (checkLoading()) return;
+    if (featureList.data?.totalItems || listCourses.data?.totalItems) {
+      const pagFeature = Math.ceil(featureList.data?.totalItems / 3);
+      const pagList = Math.ceil(listCourses.data?.totalItems / 10);
+      const max = Math.max(pagFeature, pagList);
+      return (
+        <Pagination count={max} page={pageIndex} onChange={handleChangePage} />
+      );
+    }
+    return (<Typography variant="h3">There are no data...</Typography>);
+  };
   return (
     <Grid container className={root} spacing={2}>
-      <Grid item xs={4}>FILTERS</Grid>
-      <Grid item xs={8}>
-        {featureList.loading || listCourses.loading ? <Typography variant="h3">loading...</Typography> : ''}
-        {featureList.loading || listCourses.loading ? '' : featuredList(featureList.data)}
-        {featureList.loading || listCourses.loading ? '' : createList(listCourses.data)}
+      <Grid item xs={4} className={gridCard}>FILTERS</Grid>
+      <Grid item xs={8} className={gridCard}>
+        {checkLoading() ? <Typography variant="h3">loading...</Typography> : ''}
+        {checkLoading() ? '' : featuredList(featureList.data)}
+        {checkLoading() ? '' : createList(listCourses.data)}
+        {validatePagination()}
       </Grid>
     </Grid>
   );
